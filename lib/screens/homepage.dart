@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class Homepage extends StatelessWidget {
   const Homepage({super.key});
@@ -6,17 +7,34 @@ class Homepage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final contactBook = ContactBook();
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: const Text("VanilaContacts"),
       ),
-      body: ListView.builder(
-        itemCount: contactBook.lenght,
-        itemBuilder: (context, index) {
-          final contact = contactBook.contact(atIndex: index)!;
-          return ListTile(
-            title: Text(contact.name),
+      body: ValueListenableBuilder(
+        valueListenable: ContactBook(),
+        builder: (context, value, child) {
+          final contacts = value as List<Contact>;
+          return ListView.builder(
+            itemCount: contacts.length,
+            itemBuilder: (context, index) {
+              final contact = contacts[index];
+              return Dismissible(
+                onDismissed: (direction) {
+                  ContactBook().remove(contact: contact);
+                },
+                key: ValueKey(contact.id),
+                child: Material(
+                  color: Colors.cyanAccent,
+                  elevation: 6.0,
+                  child: ListTile(
+                    title: Text(contact.name),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -84,31 +102,37 @@ class _NewContactViewState extends State<NewContactView> {
 }
 
 class Contact {
+  final String id;
   final String name;
-  const Contact({
+  Contact({
     required this.name,
-  });
+  }) : id = const Uuid().v4();
 }
 
-class ContactBook {
-  ContactBook._sharedInstace();
+class ContactBook extends ValueNotifier<List<Contact>> {
+  ContactBook._sharedInstace() : super([]);
   static final ContactBook _shared = ContactBook._sharedInstace();
   factory ContactBook() => _shared;
 
   final List<Contact> _contacts = [
-    const Contact(name: "Foo Bar Top Name : 7008901234")
+    Contact(name: "Foo Bar Top Name : 7008901234")
   ];
-  int get lenght => _contacts.length;
+  int get lenght => value.length;
 
   void add({required Contact contact}) {
-    final ValueNotifier notifier;
-    _contacts.add(contact);
+    final contacts = value;
+    contacts.add(contact);
+    notifyListeners();
   }
 
   void remove({required Contact contact}) {
-    _contacts.remove(contact);
+    final contacts = value;
+    if (contacts.contains(contact)) {
+      contacts.remove(contact);
+      notifyListeners();
+    }
   }
 
   Contact? contact({required int atIndex}) =>
-      _contacts.length > atIndex ? _contacts[atIndex] : null;
+      value.length > atIndex ? value[atIndex] : null;
 }
