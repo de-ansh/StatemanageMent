@@ -21,7 +21,7 @@ class Homepage extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async{
+        onPressed: () async {
           await Navigator.of(context).pushNamed('/new-contact');
         },
         child: const Icon(Icons.add),
@@ -95,10 +95,13 @@ class ContactBook {
   static final ContactBook _shared = ContactBook._sharedInstace();
   factory ContactBook() => _shared;
 
-  final List<Contact> _contacts = [const Contact(name: "Foo Bar")];
+  final List<Contact> _contacts = [
+    const Contact(name: "Foo Bar Top Name : 7008901234")
+  ];
   int get lenght => _contacts.length;
 
   void add({required Contact contact}) {
+    final ValueNotifier notifier;
     _contacts.add(contact);
   }
 
